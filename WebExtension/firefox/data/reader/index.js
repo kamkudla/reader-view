@@ -594,6 +594,7 @@ const render = () => chrome.runtime.sendMessage({
   if (!article) { // open this page from history for instance
     return location.replace(args.get('url'));
   }
+  document.querySelector('#content').requestFullscreen(); //enter fullscreen mode
   iframe.contentDocument.open();
   const {pathname, hostname} = (new URL(article.url));
   const gcs = window.getComputedStyle(document.documentElement);
@@ -713,6 +714,12 @@ const render = () => chrome.runtime.sendMessage({
     const active = s.toString().trim() !== '';
     document.getElementById('highlight-button').dataset.disabled = active === false;
   });
+  // capture fullscreen exit with ESC and exit reader
+  document.addEventListener('fullscreenchange', ()=>{
+    if (!document.fullscreenElement && !document.webkitIsFullScreen && !document.mozFullScreen && !document.msFullscreenElement) {
+      nav.back()
+  }
+  });
   // close on escape
   {
     const callback = e => {
@@ -764,6 +771,21 @@ const render = () => chrome.runtime.sendMessage({
           iframe.contentDocument.execCommand('underline');
           e.preventDefault();
         }
+      }
+    });
+    iframe.contentWindow.addEventListener('keydown', e => {
+      if (e.code === 'KeyJ') {
+        iframe.contentWindow.scrollBy({
+          top: 100,
+          left: 0,
+          behavior: 'smooth'
+        });
+      } else if (e.code === 'KeyK'){
+        iframe.contentWindow.scrollBy({
+          top: -100,
+          left: 0,
+          behavior: 'smooth'
+        });
       }
     });
     iframe.contentWindow.addEventListener('keydown', callback);
